@@ -2,6 +2,8 @@ import pygame
 from personaje import Personaje
 from enemigo_manager import GestorEnemigos
 from ambiente import Suelo
+from gestor_niveles import GestorNiveles
+from eventos import Evento
 from combate import Combate
 
 # Inicialización de Pygame
@@ -14,19 +16,22 @@ pygame.display.set_caption("Fantasy Game")
 
 # Colores
 BLANCO = (255, 255, 255)
-COLOR_SUELO = (50, 200, 50)
 
 # Ruta de sprites
 RUTA_PERSONAJE = "C:\\Users\\Yessenia\\OneDrive\\Escritorio\\FantasyGame\\assets\\sprites\\jugador"
 RUTA_ENEMIGOS = "C:\\Users\\Yessenia\\OneDrive\\Escritorio\\FantasyGame\\assets\\sprites\\enemigos"
 
 # Crear instancias
-suelo = Suelo(y=500, color=COLOR_SUELO, altura=100)
+suelo = Suelo(y=500, color=(50, 200, 50), altura=100)
 personaje = Personaje(x=50, y=suelo.y - 50, width=50, height=50, ruta_sprites=RUTA_PERSONAJE)
 gestor_enemigos = GestorEnemigos(ruta_sprites=RUTA_ENEMIGOS, suelo=suelo)
+gestor_niveles = GestorNiveles(gestor_enemigos=gestor_enemigos, personaje=personaje)
+combate = Combate(personaje=personaje, enemigos=gestor_enemigos.enemigos)
 
-# Instanciar combate (actualiza dinámicamente la lista de enemigos)
-combate = Combate(personaje, gestor_enemigos.enemigos)
+# Crear eventos
+evento_extra_enemigos = Evento(tipo="enemigos_extra", tiempo_activacion=30000, accion=lambda: gestor_enemigos.agregar_enemigo(), objetivo_nivel=10)
+
+eventos = [evento_extra_enemigos]
 
 # Loop principal del juego
 corriendo = True
@@ -43,25 +48,46 @@ while corriendo:
     # Capturar teclas presionadas
     teclas = pygame.key.get_pressed()
 
-    # Actualizar estados
+    # Actualizar personaje
     personaje.mover(teclas, suelo)
-    gestor_enemigos.generar_enemigos(tiempo_actual)
 
-    # Actualizar lista de enemigos en combate
-    combate.enemigos = gestor_enemigos.enemigos + gestor_enemigos.enemigos_nivel
+    # Actualizar nivel actual
+    nivel_actual = gestor_niveles.cargar_nivel()
+    if nivel_actual:
+        nivel_actual.actualizar(ventana)
+        nivel_actual.dibujar_indicadores(ventana)
 
-    # Detectar colisiones
+        # Dibujar el personaje después de actualizar el entorno
+        personaje.dibujar(ventana)
+
+        if nivel_actual.ha_completado_objetivo():
+            gestor_niveles.avanzar_nivel()
+
+    # Manejar combate
+    combate.enemigos = gestor_enemigos.enemigos
     combate.detectar_colisiones()
 
-    # Dibujar todo
-    ventana.fill(BLANCO)  # Limpiar la pantalla
-    suelo.dibujar(ventana, ANCHO)  # Dibujar el suelo
-    personaje.dibujar(ventana)
-    gestor_enemigos.actualizar_enemigos(personaje, ventana)
+    # Manejar eventos
+    for evento in eventos:
+        if nivel_actual:
+            evento.verificar_activacion(tiempo_actual, nivel_actual.esqueletos_eliminados)
 
-    pygame.display.flip()  # Actualizar la pantalla
+    # Terminar el juego si no hay más niveles
+    if not nivel_actual:
+        fuente = pygame.font.Font(None, 72)
+        texto_fin = fuente.render("¡Juego Completado!", True, (255, 255, 255))
+        ventana.fill(BLANCO)
+        ventana.blit(texto_fin, (ANCHO // 2 - texto_fin.get_width() // 2, ALTO // 2 - texto_fin.get_height() // 2))
+        pygame.display.flip()
+        pygame.time.wait(3000)
+        corriendo = False
+
+    # Actualizar pantalla
+    pygame.display.flip()
 
 pygame.quit()
+
+
 
 
 

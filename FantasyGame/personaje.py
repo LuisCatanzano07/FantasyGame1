@@ -1,16 +1,16 @@
-
 import pygame
 import os
+from typing import List, Tuple
 
 class Personaje:
-    def __init__(self, x, y, width, height, ruta_sprites):
+    def __init__(self, x: int, y: int, width: int, height: int, ruta_sprites: str):
         """Inicializa un personaje con posición, tamaño y animaciones."""
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.velocidad = 5
-        self.animacion = []
+        self.animacion: List[pygame.Surface] = []
         self.cargar_sprites(ruta_sprites)
         self.indice_animacion = 0
         self.tiempo_animacion = 0
@@ -32,17 +32,20 @@ class Personaje:
         self.pasos_actuales = 0
 
         # Rayos
-        self.rayos = []
+        self.rayos: List[dict] = []
         self.costo_rayo = 20
         self.velocidad_rayo = 10
 
-    def cargar_sprites(self, ruta_sprites):
+    def cargar_sprites(self, ruta_sprites: str):
         """Carga las imágenes de la animación desde la ruta especificada."""
-        for i in range(7):  # Hay 7 imágenes Player_0.png a Player_6.png
-            imagen = pygame.image.load(os.path.join(ruta_sprites, f"Player_{i}.png"))
-            self.animacion.append(pygame.transform.scale(imagen, (self.width, self.height)))
+        try:
+            for i in range(7):  # Hay 7 imágenes Player_0.png a Player_6.png
+                imagen = pygame.image.load(os.path.join(ruta_sprites, f"Player_{i}.png"))
+                self.animacion.append(pygame.transform.scale(imagen, (self.width, self.height)))
+        except FileNotFoundError as e:
+            print(f"Error al cargar sprites: {e}")
 
-    def dibujar(self, ventana):
+    def dibujar(self, ventana: pygame.Surface):
         """Dibuja el personaje animado en la ventana proporcionada."""
         imagen_actual = self.animacion[self.indice_animacion]
         if self.mirando_izquierda:
@@ -51,7 +54,7 @@ class Personaje:
         self.dibujar_barras(ventana)
         self.dibujar_rayos(ventana)
 
-    def dibujar_barras(self, ventana):
+    def dibujar_barras(self, ventana: pygame.Surface):
         """Dibuja las barras de salud y energía en la pantalla."""
         # Barra de salud (azul)
         barra_salud_ancho = 200
@@ -67,12 +70,12 @@ class Personaje:
         pygame.draw.rect(ventana, (255, 0, 0), (10, 40, barra_energia_ancho * energia_porcentaje, barra_energia_alto))
         pygame.draw.rect(ventana, (255, 255, 255), (10, 40, barra_energia_ancho, barra_energia_alto), 2)
 
-    def dibujar_rayos(self, ventana):
+    def dibujar_rayos(self, ventana: pygame.Surface):
         """Dibuja los rayos en la pantalla."""
         for rayo in self.rayos:
             pygame.draw.line(ventana, (255, 255, 0), rayo["inicio"], rayo["fin"], 5)
 
-    def mover(self, teclas, suelo):
+    def mover(self, teclas: pygame.key.ScancodeWrapper, suelo):
         """Mueve el personaje basado en las teclas presionadas y actualiza la animación."""
         movimiento = False
 
@@ -133,10 +136,7 @@ class Personaje:
     def lanzar_rayo(self):
         """Lanza un rayo y reduce la energía."""
         inicio = (self.x + self.width // 2, self.y + self.height // 2)
-        if self.mirando_izquierda:
-            direccion = -1
-        else:
-            direccion = 1
+        direccion = -1 if self.mirando_izquierda else 1
         fin = (self.x + self.width // 2 + 50 * direccion, self.y + self.height // 2)
         self.rayos.append({"inicio": list(inicio), "fin": list(fin), "direccion": direccion})
         self.energia_actual -= self.costo_rayo
@@ -150,6 +150,7 @@ class Personaje:
             # Eliminar rayos que salgan de la pantalla
             if rayo["fin"][0] < 0 or rayo["inicio"][0] > 800:  # Asumiendo un ancho de pantalla de 800
                 self.rayos.remove(rayo)
+
 
 
 
