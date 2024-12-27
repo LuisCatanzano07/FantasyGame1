@@ -1,6 +1,6 @@
+
 import pygame
 import os
-from ambiente import Suelo
 
 class Personaje:
     def __init__(self, x, y, width, height, ruta_sprites):
@@ -150,6 +150,9 @@ class Personaje:
             # Eliminar rayos que salgan de la pantalla
             if rayo["fin"][0] < 0 or rayo["inicio"][0] > 800:  # Asumiendo un ancho de pantalla de 800
                 self.rayos.remove(rayo)
+
+
+
 
 
 

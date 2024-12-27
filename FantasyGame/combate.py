@@ -1,49 +1,52 @@
 class Combate:
-    def __init__(self, personaje, enemigo):
-        """Inicializa el sistema de combate entre el personaje y el enemigo."""
+    def __init__(self, personaje, enemigos):
+        """Inicializa el sistema de combate entre el personaje y los enemigos."""
         self.personaje = personaje
-        self.enemigo = enemigo
+        self.enemigos = enemigos
 
     def detectar_colisiones(self):
-        """Detecta y gestiona todas las colisiones."""
-        self.colision_personaje_enemigo()
-        self.colision_rayos_enemigo()
-        self.colision_ataque_area()
+        """Detecta y gestiona todas las colisiones entre el personaje y los enemigos."""
+        self.colision_personaje_enemigos()
+        self.colision_rayos_enemigos()
 
-    def colision_personaje_enemigo(self):
-        """Detecta y gestiona colisiones entre el personaje y el enemigo."""
-        if (self.personaje.x < self.enemigo.x + self.enemigo.width and
-            self.personaje.x + self.personaje.width > self.enemigo.x and
-            self.personaje.y < self.enemigo.y + self.enemigo.height and
-            self.personaje.y + self.personaje.height > self.enemigo.y):
-            self.personaje.salud_actual -= 1
-            self.enemigo.salud_actual -= 3
+    def colision_personaje_enemigos(self):
+        """Detecta y gestiona colisiones entre el personaje y cada enemigo."""
+        for enemigo in self.enemigos[:]:
+            if self._rectangulos_colisionan(self.personaje, enemigo):
+                self.personaje.salud_actual -= 1
+                enemigo.salud_actual -= 3
+                if enemigo.salud_actual <= 0:
+                    self.enemigos.remove(enemigo)
 
-    def colision_rayos_enemigo(self):
-        """Detecta y gestiona colisiones entre los rayos del personaje y el enemigo."""
+    def colision_rayos_enemigos(self):
+        """Detecta y gestiona colisiones entre los rayos del personaje y los enemigos."""
         for rayo in self.personaje.rayos[:]:
-            if (rayo["inicio"][0] < self.enemigo.x + self.enemigo.width and
-                rayo["fin"][0] > self.enemigo.x and
-                rayo["inicio"][1] < self.enemigo.y + self.enemigo.height and
-                rayo["fin"][1] > self.enemigo.y):
-                self.enemigo.salud_actual -= 10
-                self.personaje.rayos.remove(rayo)
+            for enemigo in self.enemigos[:]:
+                if self._rayo_colisiona_con_enemigo(rayo, enemigo):
+                    enemigo.salud_actual = 0  # El rayo quita toda la salud del enemigo
+                    self.enemigos.remove(enemigo)
+                    self.personaje.rayos.remove(rayo)
+                    break
 
-    def colision_ataque_area(self):
-        """Detecta y gestiona daño cuando el enemigo está encima del personaje."""
-        if (self.enemigo.x < self.personaje.x + self.personaje.width and
-            self.enemigo.x + self.enemigo.width > self.personaje.x and
-            self.enemigo.y + self.enemigo.height > self.personaje.y and
-            self.enemigo.y < self.personaje.y + self.personaje.height / 2):
-            self.personaje.salud_actual -= self.personaje.salud_max / 4
-            self.enemigo.salud_actual -= self.enemigo.salud_max / 3
+    def _rectangulos_colisionan(self, personaje, enemigo):
+        """Verifica si los rectángulos de personaje y enemigo colisionan."""
+        return (
+            personaje.x < enemigo.x + enemigo.width and
+            personaje.x + personaje.width > enemigo.x and
+            personaje.y < enemigo.y + enemigo.height and
+            personaje.y + personaje.height > enemigo.y
+        )
 
-    def regenerar_salud(self, posicion_inicial_personaje, posicion_inicial_enemigo):
-        """Regenera la salud y reposiciona las entidades si su salud llega a 0."""
-        if self.personaje.salud_actual <= 0:
-            self.personaje.salud_actual = self.personaje.salud_max
-            self.personaje.x, self.personaje.y = posicion_inicial_personaje
+    def _rayo_colisiona_con_enemigo(self, rayo, enemigo):
+        """Verifica si un rayo colisiona con un enemigo."""
+        return (
+            max(rayo["inicio"][0], rayo["fin"][0]) > enemigo.x and
+            min(rayo["inicio"][0], rayo["fin"][0]) < enemigo.x + enemigo.width and
+            max(rayo["inicio"][1], rayo["fin"][1]) > enemigo.y and
+            min(rayo["inicio"][1], rayo["fin"][1]) < enemigo.y + enemigo.height
+        )
 
-        if self.enemigo.salud_actual <= 0:
-            self.enemigo.salud_actual = self.enemigo.salud_max
-            self.enemigo.x, self.enemigo.y = posicion_inicial_enemigo
+
+
+
+
