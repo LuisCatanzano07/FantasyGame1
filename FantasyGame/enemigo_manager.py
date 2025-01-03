@@ -4,11 +4,12 @@ from enemigo import Enemigo
 from typing import List
 
 class GestorEnemigos:
-    def __init__(self, ruta_sprites: str, suelo):
+    def __init__(self, ruta_sprites: str, suelo, ancho_ventana: int):
         """Inicializa el gestor de enemigos."""
         self.enemigos: List[Enemigo] = []
         self.ruta_sprites = ruta_sprites
         self.suelo = suelo
+        self.ancho_ventana = ancho_ventana
         self.tiempo_ultimo_generado = 0
         self.intervalo_generacion = 5000  # Milisegundos entre la generación de enemigos
         self.nivel_actual = 1
@@ -16,6 +17,7 @@ class GestorEnemigos:
         self.fuente = pygame.font.Font(None, 24)  # Fuente para texto
         self.contador_esqueletos = 0
         self.contador_muertes = 0
+        self.max_enemigos = 15  # Límite de enemigos activos en pantalla
 
         # Generar el primer enemigo inmediatamente
         self.generar_primer_enemigo()
@@ -26,8 +28,11 @@ class GestorEnemigos:
 
     def agregar_enemigo(self, x: int = None):
         """Agrega un enemigo a la lista de enemigos."""
+        if len(self.enemigos) >= self.max_enemigos:
+            return  # No agregar más enemigos si se alcanzó el límite
+
         if x is None:
-            x = -50 if random.choice([True, False]) else 850
+            x = random.choice([-50, self.ancho_ventana + 50])
         nuevo_enemigo = Enemigo(x=x, y=self.suelo.y - 50, width=50, height=50, ruta_sprites=self.ruta_sprites)
         self.enemigos.append(nuevo_enemigo)
         self.contador_esqueletos += 1
@@ -39,7 +44,7 @@ class GestorEnemigos:
             self.agregar_enemigo()
 
         # Generar enemigos específicos del nivel
-        while len(self.enemigos_nivel) < self.nivel_actual:
+        while len(self.enemigos_nivel) < self.nivel_actual and len(self.enemigos) < self.max_enemigos:
             self.agregar_enemigo()
             self.enemigos_nivel.append(self.enemigos[-1])
 
@@ -47,6 +52,7 @@ class GestorEnemigos:
         """Actualiza el estado y dibuja todos los enemigos."""
         self.generar_enemigos(pygame.time.get_ticks())
 
+        # Actualizar y dibujar enemigos
         for enemigo in self.enemigos[:]:
             enemigo.mover(personaje, self.suelo)
             enemigo.dibujar(ventana)
@@ -56,15 +62,7 @@ class GestorEnemigos:
                 self.contador_esqueletos -= 1
                 self.contador_muertes += 1
 
-        for enemigo in self.enemigos_nivel[:]:
-            enemigo.mover(personaje, self.suelo)
-            enemigo.dibujar(ventana)
-            enemigo.dibujar_barra_salud(ventana)
-            if enemigo.salud_actual <= 0:
-                self.enemigos_nivel.remove(enemigo)
-                self.contador_esqueletos -= 1
-                self.contador_muertes += 1
-
+        # Verificar avance de nivel
         if not self.enemigos_nivel and self.nivel_actual <= 10:
             self.nivel_actual += 1
 
@@ -80,6 +78,7 @@ class GestorEnemigos:
 
         ventana.blit(render_esqueletos, (220, 10))
         ventana.blit(render_muertes, (220, 40))
+
 
 
 

@@ -1,91 +1,59 @@
 import pygame
 from personaje import Personaje
-from ambiente import Suelo
-from enemigo import Enemigo
+from ventana import crear_ventana
+from suelo import Suelo
+from constantes_ventana import DIMENSIONES_PANTALLA, TITULO_VENTANA, COLOR_FONDO
 
-# Configuración inicial de Pygame
-pygame.init()
+# Crear ventana
+ventana = crear_ventana(DIMENSIONES_PANTALLA[0], DIMENSIONES_PANTALLA[1], TITULO_VENTANA)
 
-# Dimensiones de la ventana
-DIMENSIONES_PANTALLA = (800, 600)
-VENTANA = pygame.display.set_mode(DIMENSIONES_PANTALLA)
-pygame.display.set_caption("Prueba de Personaje y Enemigos")
+# Crear personaje
+personaje = Personaje(100, 300, 50, 100, DIMENSIONES_PANTALLA)
 
-# Colores
-COLOR_FONDO = (50, 50, 50)
+# Crear suelo
+suelo = Suelo(DIMENSIONES_PANTALLA[0], DIMENSIONES_PANTALLA[1], altura_suelo=30, color=(150, 75, 0))
 
-# Rutas de recursos
-RUTA_SPRITES_PERSONAJE = "assets/sprites/jugador"  # Cambia esta ruta por la ubicación real de tus sprites
-RUTA_SPRITES_ENEMIGO = "assets/sprites/enemigo"  # Cambia esta ruta por la ubicación real de los sprites del enemigo
-
-# Crear una instancia de Suelo
-suelo = Suelo(
-    y=500,  # Altura desde la parte superior de la pantalla
-    color=(100, 200, 100),  # Color inicial del suelo
-    altura=20,  # Grosor del suelo
-    velocidad=0,  # El suelo está estático por ahora
-    color_cambio=(200, 100, 100)  # Color alternativo
-)
-
-# Crear una instancia de Personaje
-personaje = Personaje(100, 400, 64, 64, RUTA_SPRITES_PERSONAJE, DIMENSIONES_PANTALLA)
-
-# Crear instancias de enemigos
-enemigos = [
-    Enemigo(300, 400, 64, 64, RUTA_SPRITES_ENEMIGO),
-    Enemigo(500, 400, 64, 64, RUTA_SPRITES_ENEMIGO, velocidad=2)
-]
-
-# Variables del juego
+# Loop principal
 reloj = pygame.time.Clock()
 ejecutando = True
 
-# Manejo de eventos
-def manejar_eventos():
+while ejecutando:
+    delta_time = reloj.tick(60)  # Tiempo entre frames
+    ventana.fill(COLOR_FONDO)  # Limpiar la pantalla
+
+    # Manejo de eventos
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
-            return False
-    return True
-
-# Bucle principal del juego
-while ejecutando:
-    # Manejar eventos
-    ejecutando = manejar_eventos()
+            ejecutando = False
 
     # Obtener teclas presionadas
     teclas = pygame.key.get_pressed()
 
-    # Limpiar pantalla
-    VENTANA.fill(COLOR_FONDO)
-
-    # Actualizar lógica del suelo
-    delta_time = reloj.tick(60)
-    tiempo_actual = pygame.time.get_ticks()
-    suelo.mover()
-    suelo.alternar_color(tiempo_actual, 1000)
-
     # Actualizar personaje
     personaje.mover(teclas, suelo, delta_time)
+
+    # Actualizar rayos
     personaje.actualizar_rayos()
-    suelo.limitar_movimiento(personaje)
 
-    # Actualizar enemigos
-    for enemigo in enemigos:
-        enemigo.mover(personaje, suelo)
-        suelo.limitar_movimiento(enemigo)
-        enemigo.actualizar_animacion()
+    # Dibujar suelo
+    suelo.dibujar(ventana)
 
-    # Dibujar suelo, personaje y enemigos
-    suelo.dibujar(VENTANA, DIMENSIONES_PANTALLA[0])
-    personaje.dibujar(VENTANA)
-    for enemigo in enemigos:
-        enemigo.dibujar(VENTANA)
-        enemigo.dibujar_barra_salud(VENTANA)
+    # Dibujar personaje
+    personaje.dibujar(ventana)
 
-    # Actualizar ventana
+    # Dibujar rayos
+    personaje.gestion_rayos.dibujar_rayos(ventana)
+
+    # Actualizar pantalla
     pygame.display.flip()
 
-# Salir de Pygame
 pygame.quit()
+
+
+
+
+
+
+
 
 

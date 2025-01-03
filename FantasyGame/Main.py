@@ -1,7 +1,7 @@
 import pygame
 from personaje import Personaje
 from enemigo_manager import GestorEnemigos
-from ambiente import Suelo
+from suelo import Suelo
 from gestor_niveles import GestorNiveles
 from eventos import Evento
 from combate import Combate

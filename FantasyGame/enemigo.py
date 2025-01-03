@@ -36,16 +36,14 @@ class Enemigo:
                 self.animacion_espejada.append(pygame.transform.flip(imagen, True, False))
             except FileNotFoundError:
                 print(f"Sprite no encontrado: {os.path.join(ruta_sprites, f'Esqueleton_{i}.png')}")
-
         if not self.animacion or not self.animacion_espejada:
             print("Advertencia: No se pudieron cargar sprites. Verifica la ruta y los archivos.")
 
     def dibujar(self, ventana: pygame.Surface):
         """Dibuja el enemigo animado en la ventana proporcionada."""
         if not self.animacion or not self.animacion_espejada:
-            print("Advertencia: Las listas de animación están vacías.")
+            print("Advertencia: Las listas de animación están vacías. No se puede dibujar el enemigo.")
             return
-
         if self.mirando_izquierda:
             imagen_actual = self.animacion_espejada[self.indice_animacion]
         else:
@@ -67,7 +65,7 @@ class Enemigo:
     def actualizar_animacion(self, velocidad_animacion: int = 5):
         """Actualiza la animación del enemigo."""
         if not self.animacion:
-            return
+            return  # No hay animaciones para actualizar
 
         self.tiempo_animacion += 1
         if self.tiempo_animacion >= velocidad_animacion:  # Cambiar frame según velocidad de animación
@@ -93,6 +91,7 @@ class Enemigo:
 
         # Actualizar la animación
         self.actualizar_animacion()
+
 
 
 
