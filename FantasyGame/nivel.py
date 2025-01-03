@@ -49,8 +49,10 @@ class Nivel:
         texto_nivel = fuente.render(f"Nivel: {self.numero}", True, (255, 255, 255))
         texto_objetivo = fuente.render(f"Progreso: {self.esqueletos_eliminados}/{self.objetivo}", True, (255, 255, 255))
 
-        ventana.blit(texto_nivel, (10, 10))
-        ventana.blit(texto_objetivo, (10, 50))
+        # Posicionar al lado de las barras de salud y energía
+        ventana.blit(texto_nivel, (220, 10))
+        ventana.blit(texto_objetivo, (220, 40))
+
 
 
 

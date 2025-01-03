@@ -29,16 +29,23 @@ class Enemigo:
 
     def cargar_sprites(self, ruta_sprites: str):
         """Carga las imágenes de la animación desde la ruta especificada."""
-        try:
-            for i in range(10):  # Hay 10 imágenes Esqueleton_0.png a Esqueleton_9.png
+        for i in range(10):  # Intenta cargar las imágenes del 0 al 9
+            try:
                 imagen = pygame.image.load(os.path.join(ruta_sprites, f"Esqueleton_{i}.png"))
                 self.animacion.append(pygame.transform.scale(imagen, (self.width, self.height)))
                 self.animacion_espejada.append(pygame.transform.flip(imagen, True, False))
-        except FileNotFoundError as e:
-            print(f"Error al cargar sprites: {e}")
+            except FileNotFoundError:
+                print(f"Sprite no encontrado: {os.path.join(ruta_sprites, f'Esqueleton_{i}.png')}")
+
+        if not self.animacion or not self.animacion_espejada:
+            print("Advertencia: No se pudieron cargar sprites. Verifica la ruta y los archivos.")
 
     def dibujar(self, ventana: pygame.Surface):
         """Dibuja el enemigo animado en la ventana proporcionada."""
+        if not self.animacion or not self.animacion_espejada:
+            print("Advertencia: Las listas de animación están vacías.")
+            return
+
         if self.mirando_izquierda:
             imagen_actual = self.animacion_espejada[self.indice_animacion]
         else:
@@ -59,6 +66,9 @@ class Enemigo:
 
     def actualizar_animacion(self, velocidad_animacion: int = 5):
         """Actualiza la animación del enemigo."""
+        if not self.animacion:
+            return
+
         self.tiempo_animacion += 1
         if self.tiempo_animacion >= velocidad_animacion:  # Cambiar frame según velocidad de animación
             self.tiempo_animacion = 0
@@ -83,6 +93,8 @@ class Enemigo:
 
         # Actualizar la animación
         self.actualizar_animacion()
+
+
 
 
 
